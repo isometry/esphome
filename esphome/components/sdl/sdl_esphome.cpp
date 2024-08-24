@@ -9,8 +9,20 @@ void Sdl::setup() {
   ESP_LOGD(TAG, "Starting setup");
   SDL_Init(SDL_INIT_VIDEO);
   this->window_ = SDL_CreateWindow(App.get_name().c_str(), SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
-                                   this->width_, this->height_, 0);
+                                   this->width_, this->height_, SDL_WINDOW_ALLOW_HIGHDPI);
   this->renderer_ = SDL_CreateRenderer(this->window_, -1, SDL_RENDERER_SOFTWARE);
+  int rw = 0, rh = 0;
+  SDL_GetRendererOutputSize(this->renderer_, &rw, &rh);
+  if (rw != this->width_) {
+    float widthScale = (float) rw / (float) this->width_;
+    float heightScale = (float) rh / (float) this->height_;
+
+    if (widthScale != heightScale) {
+      fprintf(stderr, "WARNING: width scale != height scale\n");
+    }
+
+    SDL_RenderSetScale(this->renderer_, widthScale, heightScale);
+  }
   this->texture_ =
       SDL_CreateTexture(this->renderer_, SDL_PIXELFORMAT_RGB565, SDL_TEXTUREACCESS_STATIC, this->width_, this->height_);
   SDL_SetTextureBlendMode(this->texture_, SDL_BLENDMODE_BLEND);
